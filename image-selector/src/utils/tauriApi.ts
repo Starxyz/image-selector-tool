@@ -90,12 +90,34 @@ export class TauriAPI {
    * 将文件路径转换为可在前端显示的URL
    */
   static convertFileSrc(filePath: string): string {
+    console.log('原始文件路径:', filePath);
+
     try {
-      return convertFileSrc(filePath);
+      // 在Tauri 1.x中，convertFileSrc可能需要特殊处理
+      const convertedPath = convertFileSrc(filePath);
+      console.log('Tauri转换后路径:', convertedPath);
+      return convertedPath;
     } catch (error) {
-      console.error('转换文件路径失败:', error);
-      // 降级处理 - 直接使用文件路径
-      return filePath;
+      console.error('Tauri转换失败，尝试其他方法:', error);
+
+      // 降级方法：直接构造本地文件URL
+      // 确保路径格式正确
+      let normalizedPath = filePath;
+
+      // Windows路径处理
+      if (normalizedPath.includes('\\')) {
+        normalizedPath = normalizedPath.replace(/\\/g, '/');
+      }
+
+      // 确保路径以盘符开头（Windows）
+      if (normalizedPath.match(/^[A-Za-z]:/)) {
+        normalizedPath = '/' + normalizedPath;
+      }
+
+      const fileUrl = `file://${normalizedPath}`;
+      console.log('降级处理后的URL:', fileUrl);
+
+      return fileUrl;
     }
   }
 }

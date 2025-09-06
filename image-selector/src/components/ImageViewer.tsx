@@ -49,11 +49,15 @@ export const ImageViewer: React.FC = () => {
 
   // 处理图片加载
   const handleImageLoad = () => {
+    console.log('图片加载成功:', currentImage?.name);
     setImageLoaded(true);
     setImageError(false);
   };
 
-  const handleImageError = () => {
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.error('图片加载失败:', currentImage?.name, e);
+    console.error('图片路径:', currentImage?.path);
+    console.error('图片URL:', getImageSrc());
     setImageError(true);
     setImageLoaded(false);
   };
@@ -104,7 +108,10 @@ export const ImageViewer: React.FC = () => {
   // 获取图片显示URL
   const getImageSrc = () => {
     if (!currentImage) return '';
-    return TauriAPI.convertFileSrc(currentImage.path);
+    console.log('当前图片信息:', currentImage);
+    const imageSrc = TauriAPI.convertFileSrc(currentImage.path);
+    console.log('最终图片URL:', imageSrc);
+    return imageSrc;
   };
 
   if (!currentImage) {
@@ -163,7 +170,26 @@ export const ImageViewer: React.FC = () => {
         {imageError ? (
           <div className="text-white text-center">
             <p className="text-xl mb-2">图片加载失败</p>
-            <p className="text-gray-400">{currentImage.name}</p>
+            <p className="text-gray-400 mb-2">{currentImage.name}</p>
+            <p className="text-xs text-gray-500 mb-4">路径: {currentImage.path}</p>
+            <p className="text-xs text-gray-500 mb-4">URL: {getImageSrc()}</p>
+            <div className="space-x-2">
+              <button
+                onClick={() => {
+                  setImageError(false);
+                  setImageLoaded(false);
+                }}
+                className="btn-secondary text-sm"
+              >
+                重试加载
+              </button>
+              <button
+                onClick={() => setViewerMode(false)}
+                className="btn-secondary text-sm"
+              >
+                返回选择
+              </button>
+            </div>
           </div>
         ) : (
           <img
