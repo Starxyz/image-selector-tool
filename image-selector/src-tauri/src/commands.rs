@@ -1,5 +1,5 @@
 use crate::file_manager::FileManager;
-use crate::types::{ImageFile, ImageMetadata, FileOperation};
+use crate::types::{ImageFile, ImageMetadata, FileOperation, ProcessResult};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use tauri::command;
@@ -11,12 +11,7 @@ pub struct ScanResult {
     pub scan_time_ms: u64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ProcessResult {
-    pub success_count: usize,
-    pub failed_count: usize,
-    pub errors: Vec<String>,
-}
+
 
 /// 扫描文件夹中的图片文件
 #[command]
@@ -40,7 +35,7 @@ pub async fn scan_folder(path: String) -> Result<ScanResult, String> {
 #[command]
 pub async fn open_folder_dialog() -> Result<Option<String>, String> {
     use rfd::AsyncFileDialog;
-    
+
     match AsyncFileDialog::new()
         .set_title("选择图片文件夹")
         .pick_folder()

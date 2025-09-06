@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api/core';
+import { invoke } from '@tauri-apps/api/tauri';
 import { ImageFile, ScanResult, ProcessResult, ImageMetadata } from '../types';
 
 export class TauriAPI {
@@ -89,14 +89,15 @@ export class TauriAPI {
    * 将文件路径转换为可在前端显示的URL
    */
   static convertFileSrc(filePath: string): string {
-    // Tauri v2 中使用 convertFileSrc
+    // Tauri v1 中使用 convertFileSrc
     try {
-      // 这里需要导入 @tauri-apps/api/core 的 convertFileSrc
-      // 暂时返回 file:// 协议的路径
-      return `file://${filePath}`;
+      // 导入 convertFileSrc 函数
+      const { convertFileSrc } = require('@tauri-apps/api/tauri');
+      return convertFileSrc(filePath);
     } catch (error) {
       console.error('转换文件路径失败:', error);
-      return filePath;
+      // 降级处理
+      return `file://${filePath}`;
     }
   }
 }

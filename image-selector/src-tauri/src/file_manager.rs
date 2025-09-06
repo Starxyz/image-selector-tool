@@ -83,6 +83,8 @@ impl FileManager {
 
     /// 获取图片元数据
     pub fn get_image_metadata(file_path: &str) -> Result<ImageMetadata, Box<dyn std::error::Error + Send + Sync>> {
+        use image::GenericImageView;
+
         let img = image::open(file_path)?;
         let (width, height) = img.dimensions();
         
