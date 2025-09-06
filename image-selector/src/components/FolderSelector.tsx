@@ -24,8 +24,8 @@ export const FolderSelector: React.FC<FolderSelectorProps> = ({ onFolderSelected
     try {
       clearError();
       const result = await selectAndScanFolder();
-      
-      if (result && onFolderSelected) {
+
+      if (result && result.images.length > 0 && onFolderSelected) {
         onFolderSelected(folderPath);
       }
     } catch (err) {
@@ -90,9 +90,15 @@ export const FolderSelector: React.FC<FolderSelectorProps> = ({ onFolderSelected
                 扫描完成
               </span>
             </div>
-            <p className="text-gray-300 mt-2">
+            <p className="text-gray-300 mt-2 mb-4">
               找到 <span className="font-bold text-white">{images.length}</span> 张图片
             </p>
+            <button
+              onClick={() => onFolderSelected && onFolderSelected(folderPath)}
+              className="w-full btn-primary"
+            >
+              开始浏览图片
+            </button>
           </div>
         )}
 

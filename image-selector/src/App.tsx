@@ -17,10 +17,8 @@ function App() {
   useKeyboardShortcuts();
 
   const handleFolderSelected = () => {
-    // 文件夹选择完成后，如果有图片则进入查看器模式
-    if (images.length > 0) {
-      setViewerMode(true);
-    }
+    // 文件夹选择完成后，进入查看器模式
+    setViewerMode(true);
   };
 
   return (
