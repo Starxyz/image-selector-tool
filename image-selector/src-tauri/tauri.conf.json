@@ -21,6 +21,11 @@
       },
       "path": {
         "all": true
+      },
+      "protocol": {
+        "all": true,
+        "asset": true,
+        "assetScope": ["**"]
       }
     },
     "bundle": {
@@ -36,7 +41,7 @@
       ]
     },
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; img-src 'self' asset: https: data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval'"
     },
     "windows": [
       {

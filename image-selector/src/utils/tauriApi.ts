@@ -86,23 +86,71 @@ export class TauriAPI {
     }
   }
 
+  // 缓存convertFileSrc的可用性测试结果
+  private static convertFileSrcWorks: boolean | null = null;
+
   /**
-   * 将文件路径转换为可在前端显示的URL
+   * 测试convertFileSrc是否可用
+   */
+  private static async testConvertFileSrc(testPath: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const convertedUrl = convertFileSrc(testPath);
+
+      const timeout = setTimeout(() => {
+        img.onload = null;
+        img.onerror = null;
+        resolve(false);
+      }, 1000); // 1秒超时
+
+      img.onload = () => {
+        clearTimeout(timeout);
+        resolve(true);
+      };
+
+      img.onerror = () => {
+        clearTimeout(timeout);
+        resolve(false);
+      };
+
+      img.src = convertedUrl;
+    });
+  }
+
+  /**
+   * 智能选择最佳的图片加载方法
+   */
+  static async getBestImageSrc(filePath: string): Promise<string> {
+    console.log('获取最佳图片源:', filePath);
+
+    // 如果还没有测试过convertFileSrc，先测试一下
+    if (this.convertFileSrcWorks === null) {
+      console.log('首次测试convertFileSrc可用性...');
+      this.convertFileSrcWorks = await this.testConvertFileSrc(filePath);
+      console.log('ConvertFileSrc可用性:', this.convertFileSrcWorks);
+    }
+
+    // 如果convertFileSrc可用，直接使用
+    if (this.convertFileSrcWorks) {
+      const convertedPath = convertFileSrc(filePath);
+      console.log('使用convertFileSrc:', convertedPath);
+      return convertedPath;
+    }
+
+    // 否则使用base64方法
+    console.log('使用base64方法加载图片...');
+    return await this.getImageAsBase64(filePath);
+  }
+
+  /**
+   * 将文件路径转换为可在前端显示的URL（保持向后兼容）
    */
   static convertFileSrc(filePath: string): string {
-    console.log('原始文件路径:', filePath);
-
     try {
-      // 使用Tauri的convertFileSrc函数
-      const convertedPath = convertFileSrc(filePath);
-      console.log('ConvertFileSrc结果:', convertedPath);
-      return convertedPath;
+      return convertFileSrc(filePath);
     } catch (error) {
       console.error('ConvertFileSrc失败:', error);
-
-      // 降级方案：使用data URL通过后端读取文件
-      console.log('尝试通过后端读取文件...');
-      return `tauri://localhost/read-image?path=${encodeURIComponent(filePath)}`;
+      return filePath;
     }
   }
 

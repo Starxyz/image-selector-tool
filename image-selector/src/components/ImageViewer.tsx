@@ -49,22 +49,39 @@ export const ImageViewer: React.FC = () => {
     if (currentImage) {
       resetImageState();
       loadImage();
+
+      // 预加载下一张图片
+      preloadNextImage();
     }
   }, [currentImage?.id]);
+
+  // 预加载下一张图片以提升性能
+  const preloadNextImage = async () => {
+    const { images } = useAppStore.getState();
+    const nextIndex = currentIndex + 1;
+
+    if (nextIndex < images.length) {
+      const nextImage = images[nextIndex];
+      try {
+        // 在后台预加载下一张图片
+        await TauriAPI.getBestImageSrc(nextImage.path);
+        console.log('预加载完成:', nextImage.name);
+      } catch (error) {
+        console.log('预加载失败:', nextImage.name, error);
+      }
+    }
+  };
 
   // 加载图片
   const loadImage = async () => {
     if (!currentImage) return;
 
     try {
-      console.log('开始加载图片:', currentImage.name);
+      console.log('开始智能加载图片:', currentImage.name);
 
-      // 首先尝试使用convertFileSrc
-      const convertedSrc = TauriAPI.convertFileSrc(currentImage.path);
-      setImageSrc(convertedSrc);
-
-      // 如果convertFileSrc失败，尝试base64方法
-      // 这里我们先让img标签尝试加载，如果失败会触发onError
+      // 使用智能方法获取最佳图片源
+      const bestSrc = await TauriAPI.getBestImageSrc(currentImage.path);
+      setImageSrc(bestSrc);
 
     } catch (error) {
       console.error('加载图片失败:', error);
@@ -99,15 +116,8 @@ export const ImageViewer: React.FC = () => {
     console.error('图片路径:', currentImage?.path);
     console.error('当前图片URL:', imageSrc);
 
-    // 如果当前使用的不是base64，尝试base64方法
-    if (!imageSrc.startsWith('data:')) {
-      console.log('尝试使用base64方法重新加载...');
-      loadImageAsBase64();
-    } else {
-      console.error('Base64方法也失败了');
-      setImageError(true);
-      setImageLoaded(false);
-    }
+    setImageError(true);
+    setImageLoaded(false);
   };
 
   // 处理鼠标滚轮缩放
