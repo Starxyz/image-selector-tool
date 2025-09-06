@@ -28,6 +28,7 @@ export const ImageViewer: React.FC = () => {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [imageSrc, setImageSrc] = useState<string>('');
   
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -40,12 +41,51 @@ export const ImageViewer: React.FC = () => {
     setImagePosition({ x: 0, y: 0 });
     setImageLoaded(false);
     setImageError(false);
+    setImageSrc('');
   };
 
-  // 当图片改变时重置状态
+  // 当图片改变时重置状态并加载新图片
   useEffect(() => {
-    resetImageState();
+    if (currentImage) {
+      resetImageState();
+      loadImage();
+    }
   }, [currentImage?.id]);
+
+  // 加载图片
+  const loadImage = async () => {
+    if (!currentImage) return;
+
+    try {
+      console.log('开始加载图片:', currentImage.name);
+
+      // 首先尝试使用convertFileSrc
+      const convertedSrc = TauriAPI.convertFileSrc(currentImage.path);
+      setImageSrc(convertedSrc);
+
+      // 如果convertFileSrc失败，尝试base64方法
+      // 这里我们先让img标签尝试加载，如果失败会触发onError
+
+    } catch (error) {
+      console.error('加载图片失败:', error);
+      setImageError(true);
+    }
+  };
+
+  // 尝试使用base64方法加载图片
+  const loadImageAsBase64 = async () => {
+    if (!currentImage) return;
+
+    try {
+      console.log('尝试base64方法加载图片:', currentImage.name);
+      const base64Src = await TauriAPI.getImageAsBase64(currentImage.path);
+      setImageSrc(base64Src);
+      setImageError(false);
+    } catch (error) {
+      console.error('Base64加载也失败了:', error);
+      setImageError(true);
+    }
+  };
 
   // 处理图片加载
   const handleImageLoad = () => {
@@ -57,9 +97,17 @@ export const ImageViewer: React.FC = () => {
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     console.error('图片加载失败:', currentImage?.name, e);
     console.error('图片路径:', currentImage?.path);
-    console.error('图片URL:', getImageSrc());
-    setImageError(true);
-    setImageLoaded(false);
+    console.error('当前图片URL:', imageSrc);
+
+    // 如果当前使用的不是base64，尝试base64方法
+    if (!imageSrc.startsWith('data:')) {
+      console.log('尝试使用base64方法重新加载...');
+      loadImageAsBase64();
+    } else {
+      console.error('Base64方法也失败了');
+      setImageError(true);
+      setImageLoaded(false);
+    }
   };
 
   // 处理鼠标滚轮缩放
@@ -107,10 +155,6 @@ export const ImageViewer: React.FC = () => {
 
   // 获取图片显示URL
   const getImageSrc = () => {
-    if (!currentImage) return '';
-    console.log('当前图片信息:', currentImage);
-    const imageSrc = TauriAPI.convertFileSrc(currentImage.path);
-    console.log('最终图片URL:', imageSrc);
     return imageSrc;
   };
 
@@ -178,6 +222,7 @@ export const ImageViewer: React.FC = () => {
                 onClick={() => {
                   setImageError(false);
                   setImageLoaded(false);
+                  loadImage();
                 }}
                 className="btn-secondary text-sm"
               >

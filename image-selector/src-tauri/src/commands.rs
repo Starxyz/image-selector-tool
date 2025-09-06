@@ -89,3 +89,18 @@ pub async fn create_directory(path: String) -> Result<(), String> {
     std::fs::create_dir_all(&path)
         .map_err(|e| format!("创建文件夹失败: {}", e))
 }
+
+/// 读取图片文件并返回base64编码
+#[command]
+pub async fn read_image_as_base64(path: String) -> Result<String, String> {
+    use std::fs;
+    use base64::{Engine as _, engine::general_purpose};
+
+    match fs::read(&path) {
+        Ok(bytes) => {
+            let base64_string = general_purpose::STANDARD.encode(&bytes);
+            Ok(base64_string)
+        }
+        Err(e) => Err(format!("读取文件失败: {}", e))
+    }
+}

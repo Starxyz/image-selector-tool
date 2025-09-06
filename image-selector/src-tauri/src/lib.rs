@@ -12,7 +12,8 @@ pub fn run() {
             get_image_metadata,
             batch_copy_files,
             batch_move_files,
-            create_directory
+            create_directory,
+            read_image_as_base64
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

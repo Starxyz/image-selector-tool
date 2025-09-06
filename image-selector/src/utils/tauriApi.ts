@@ -93,31 +93,29 @@ export class TauriAPI {
     console.log('原始文件路径:', filePath);
 
     try {
-      // 在Tauri 1.x中，convertFileSrc可能需要特殊处理
+      // 使用Tauri的convertFileSrc函数
       const convertedPath = convertFileSrc(filePath);
-      console.log('Tauri转换后路径:', convertedPath);
+      console.log('ConvertFileSrc结果:', convertedPath);
       return convertedPath;
     } catch (error) {
-      console.error('Tauri转换失败，尝试其他方法:', error);
+      console.error('ConvertFileSrc失败:', error);
 
-      // 降级方法：直接构造本地文件URL
-      // 确保路径格式正确
-      let normalizedPath = filePath;
+      // 降级方案：使用data URL通过后端读取文件
+      console.log('尝试通过后端读取文件...');
+      return `tauri://localhost/read-image?path=${encodeURIComponent(filePath)}`;
+    }
+  }
 
-      // Windows路径处理
-      if (normalizedPath.includes('\\')) {
-        normalizedPath = normalizedPath.replace(/\\/g, '/');
-      }
-
-      // 确保路径以盘符开头（Windows）
-      if (normalizedPath.match(/^[A-Za-z]:/)) {
-        normalizedPath = '/' + normalizedPath;
-      }
-
-      const fileUrl = `file://${normalizedPath}`;
-      console.log('降级处理后的URL:', fileUrl);
-
-      return fileUrl;
+  /**
+   * 通过后端读取图片文件并返回base64数据
+   */
+  static async getImageAsBase64(filePath: string): Promise<string> {
+    try {
+      const result = await invoke<string>('read_image_as_base64', { path: filePath });
+      return `data:image/jpeg;base64,${result}`;
+    } catch (error) {
+      console.error('读取图片文件失败:', error);
+      throw error;
     }
   }
 }
