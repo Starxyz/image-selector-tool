@@ -55,12 +55,12 @@ pub async fn get_image_metadata(path: String) -> Result<ImageMetadata, String> {
 
 /// 批量复制文件
 #[command]
-pub async fn batch_copy_files(files: Vec<ImageFile>, target_path: String) -> Result<ProcessResult, String> {
+pub async fn batch_copy_files(files: Vec<ImageFile>, targetPath: String) -> Result<ProcessResult, String> {
     let operations: Vec<FileOperation> = files
         .into_iter()
         .map(|file| FileOperation::Copy {
             source: file.path,
-            target: Path::new(&target_path).join(&file.name).to_string_lossy().to_string(),
+            target: Path::new(&targetPath).join(&file.name).to_string_lossy().to_string(),
         })
         .collect();
 
@@ -70,12 +70,12 @@ pub async fn batch_copy_files(files: Vec<ImageFile>, target_path: String) -> Res
 
 /// 批量移动文件
 #[command]
-pub async fn batch_move_files(files: Vec<ImageFile>, target_path: String) -> Result<ProcessResult, String> {
+pub async fn batch_move_files(files: Vec<ImageFile>, targetPath: String) -> Result<ProcessResult, String> {
     let operations: Vec<FileOperation> = files
         .into_iter()
         .map(|file| FileOperation::Move {
             source: file.path,
-            target: Path::new(&target_path).join(&file.name).to_string_lossy().to_string(),
+            target: Path::new(&targetPath).join(&file.name).to_string_lossy().to_string(),
         })
         .collect();
 

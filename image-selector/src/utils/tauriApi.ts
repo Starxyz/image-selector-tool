@@ -49,7 +49,7 @@ export class TauriAPI {
     try {
       const result = await invoke<ProcessResult>('batch_copy_files', {
         files,
-        target_path: targetPath,
+        targetPath,
       });
       return result;
     } catch (error) {
@@ -65,7 +65,7 @@ export class TauriAPI {
     try {
       const result = await invoke<ProcessResult>('batch_move_files', {
         files,
-        target_path: targetPath,
+        targetPath,
       });
       return result;
     } catch (error) {
