@@ -1,0 +1,60 @@
+name: Build Windows App
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: image-selector/package-lock.json
+
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: stable
+
+    - name: Rust cache
+      uses: swatinem/rust-cache@v2
+      with:
+        workspaces: './image-selector/src-tauri -> target'
+
+    - name: Install frontend dependencies
+      working-directory: ./image-selector
+      run: npm ci
+
+    - name: Build Tauri app
+      working-directory: ./image-selector
+      run: npm run tauri build
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Windows installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-installer
+        path: |
+          image-selector/src-tauri/target/release/bundle/msi/*.msi
+          image-selector/src-tauri/target/release/bundle/nsis/*.exe
+        if-no-files-found: error
+
+    - name: Upload Windows executable
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-executable
+        path: image-selector/src-tauri/target/release/*.exe
+        if-no-files-found: error
